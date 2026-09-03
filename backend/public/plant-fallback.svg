@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-labelledby="title">
+  <title>Plant image unavailable</title>
+  <rect width="800" height="600" fill="#d1d5db"/>
+  <path d="M400 500V240c0-82 42-142 116-176-4 87-34 146-96 190" fill="none" stroke="#166534" stroke-width="24" stroke-linecap="round"/>
+  <path d="M387 346c-94-8-151-57-170-148 99 4 157 48 170 148Z" fill="#15803d"/>
+  <path d="M421 284c33-82 91-119 177-116-20 78-77 119-177 116Z" fill="#16a34a"/>
+  <path d="M391 423c-76-4-124-42-145-113 82 2 130 37 145 113Z" fill="#22c55e"/>
+  <text x="400" y="555" text-anchor="middle" fill="#374151" font-family="sans-serif" font-size="28">Plant image unavailable</text>
+</svg>

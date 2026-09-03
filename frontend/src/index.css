@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Montenegrin+Gothic+One&family=Oswald:wght@200..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+::-webkit-scrollbar {
+  display: none;
+}
+@keyframes loading {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.animate-loading {
+  animation: loading 3s linear forwards;
+}
+
+html {
+  scrollbar-width: none;
+}
+.font-montenegrin {
+  font-family: "Montenegrin Gothic One", sans-serif;
+}
+.hero-heading {
+  font-family: "Cormorant Garamond", serif;
+}
+
+
+* {
+  margin: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Oswald", sans-serif;
+  -ms-overflow-style: none;
+}
+
+.checkout-input {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: white;
+  border: 2px solid black;
+  color: black;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.checkout-input::placeholder {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.checkout-input:focus {
+  border-color: rgb(34, 197, 94);
+  background: rgb(240, 253, 244);
+}
