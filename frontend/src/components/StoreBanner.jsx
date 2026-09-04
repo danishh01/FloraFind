@@ -3,7 +3,7 @@ const StoreBanner = () => {
     <div className="flex flex-col w-full overflow-hidden p-">
       <div className="border-[5px] border-white rounded-3xl overflow-hidden">
         <div className="w-full bg-black px-6 py-10 sm:px-10 md:px-14">
-          <div className="max-w-5xl mx-auto text-center">
+          <div className="flex flex-col items-center mx-auto text-center">
             <p className="text-xs sm:text-sm uppercase tracking-[0.25em] text-white/50 mb-3">
               FloraFind Store
             </p>

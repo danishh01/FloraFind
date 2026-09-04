@@ -54,7 +54,6 @@ const AuthModal = () => {
         </button>
 
         <div className="flex items-center gap-3 mb-6">
-          <Leaf className="text-green-500" />
           <h2 className="text-2xl sm:text-3xl font-black text-white">
             {mode === "login" ? "Login" : "Create Account"}
           </h2>

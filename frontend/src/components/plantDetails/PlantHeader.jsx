@@ -33,7 +33,7 @@ const PlantHeader = ({ plant, partial, lang, setLang, languageMenuOpen, setLangu
         )}
       </div>
       <Link
-        to="/"
+        to="/ScanPlant"
         className="flex items-center self-start sm:self-auto shrink-0 border border-white rounded-3xl p-1 gap-2 text-white hover:text-green-800 cursor-pointer transition-colors duration-300 text-sm sm:text-base"
       >
         <CircleArrowLeft />
