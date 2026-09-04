@@ -1,4 +1,13 @@
-const OrderSummary = ({ cartItems, totalItems, subtotal, deliveryCharge, total, orderError, placingOrder }) => (
+const OrderSummary = ({
+  cartItems,
+  totalItems,
+  subtotal,
+  deliveryCharge,
+  total,
+  orderError,
+  placingOrder,
+  paymentMethod,
+}) => (
   <div className="bg-white border-3 border-black rounded-3xl p-7 h-fit lg:sticky lg:top-32">
     <h2 className="text-3xl font-bold text-black mb-7">Order Summary</h2>
 
@@ -50,7 +59,13 @@ const OrderSummary = ({ cartItems, totalItems, subtotal, deliveryCharge, total, 
       disabled={placingOrder}
       className="w-full mt-8 bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold text-lg transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
     >
-      {placingOrder ? "Placing Order..." : "Place Order"}
+      {placingOrder
+        ? paymentMethod === "razorpay"
+          ? "Processing Payment..."
+          : "Placing Order..."
+        : paymentMethod === "razorpay"
+          ? `Pay ₹${total} with Razorpay`
+          : "Place Order"}
     </button>
   </div>
 );

@@ -11,7 +11,8 @@ import DeliveryOptions from "../components/checkout/DeliveryOptions";
 import PaymentOptions from "../components/checkout/PaymentOptions";
 import OrderSummary from "../components/checkout/OrderSummary";
 
-import { placeOrder } from "../features/order/orderSlice";
+import paymentApi from "../api/paymentApi";
+import { placeOrder, verifyRazorpayPayment } from "../features/order/orderSlice";
 import { openAuthModal, selectIsAuthenticated } from "../features/auth/authSlice";
 
 const Checkout = () => {
@@ -19,6 +20,7 @@ const Checkout = () => {
   const dispatch = useDispatch();
 
   const isAuthenticated = useSelector(selectIsAuthenticated);
+  const token = useSelector((state) => state.auth.token);
   const cartItems = useSelector((state) => state.cart.cartItems);
   const [placingOrder, setPlacingOrder] = useState(false);
   const [orderError, setOrderError] = useState(null);
@@ -47,6 +49,41 @@ const Checkout = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Opens Razorpay's Checkout popup and resolves with the payment details
+  // once the user completes a TEST payment. Razorpay's widget uses a
+  // callback (not a Promise), so this just wraps that callback in a Promise
+  // so it can be awaited like everything else in this function.
+  const openRazorpayCheckout = ({ razorpayOrderId, amount, currency, keyId }) => {
+    return new Promise((resolve, reject) => {
+      if (typeof window.Razorpay === "undefined") {
+        reject(new Error("Payment gateway failed to load. Please refresh the page and try again."));
+        return;
+      }
+
+      const razorpay = new window.Razorpay({
+        key: keyId,
+        amount,
+        currency,
+        order_id: razorpayOrderId,
+        name: "FloraFind",
+        description: "Plant shop order (Razorpay Test Mode)",
+        prefill: {
+          name: formData.name,
+          email: formData.email,
+          contact: formData.phone,
+        },
+        theme: { color: "#16a34a" },
+        handler: (response) => resolve(response),
+        modal: {
+          ondismiss: () => reject(new Error("Payment was cancelled.")),
+        },
+      });
+
+      razorpay.on("payment.failed", () => reject(new Error("Payment failed. Please try again.")));
+      razorpay.open();
+    });
+  };
+
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
 
@@ -55,33 +92,52 @@ const Checkout = () => {
       return;
     }
 
+    const customer = { name: formData.name, phone: formData.phone, email: formData.email };
+    const address = {
+      house: formData.house,
+      street: formData.street,
+      city: formData.city,
+      state: formData.state,
+      pincode: formData.pincode,
+    };
+
     setOrderError(null);
     setPlacingOrder(true);
     try {
-      const order = await dispatch(
-        placeOrder({
-          customer: {
-            name: formData.name,
-            phone: formData.phone,
-            email: formData.email,
-          },
-          address: {
-            house: formData.house,
-            street: formData.street,
-            city: formData.city,
-            state: formData.state,
-            pincode: formData.pincode,
-          },
-          deliveryMethod,
-          paymentMethod,
-        })
-      ).unwrap();
+      let order;
+
+      if (paymentMethod === "razorpay") {
+        // 1) Ask the backend to open a Razorpay order for the current cart.
+        const razorpayOrder = await paymentApi.createPaymentOrder(token, { deliveryMethod });
+        // 2) Let the user actually pay (Razorpay Test Mode) in the popup.
+        const paymentResponse = await openRazorpayCheckout(razorpayOrder);
+        // 3) Send the payment result to the backend for verification -
+        // the order is only created if the backend confirms it's genuine.
+        order = await dispatch(
+          verifyRazorpayPayment({
+            razorpay_order_id: paymentResponse.razorpay_order_id,
+            razorpay_payment_id: paymentResponse.razorpay_payment_id,
+            razorpay_signature: paymentResponse.razorpay_signature,
+            customer,
+            address,
+            deliveryMethod,
+          })
+        ).unwrap();
+      } else {
+        order = await dispatch(placeOrder({ customer, address, deliveryMethod })).unwrap();
+      }
 
       navigate("/Shop/OrderSuccess", {
         state: { orderId: order.id, total: order.total },
       });
     } catch (err) {
-      setOrderError(typeof err === "string" ? err : "Could not place your order. Please try again.");
+      if (typeof err === "string") {
+        setOrderError(err);
+      } else if (err instanceof Error && err.message) {
+        setOrderError(err.message);
+      } else {
+        setOrderError("Could not place your order. Please try again.");
+      }
     } finally {
       setPlacingOrder(false);
     }
@@ -153,6 +209,7 @@ const Checkout = () => {
             total={total}
             orderError={orderError}
             placingOrder={placingOrder}
+            paymentMethod={paymentMethod}
           />
         </div>
       </form>

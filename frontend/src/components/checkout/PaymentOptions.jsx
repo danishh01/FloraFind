@@ -1,10 +1,11 @@
 import { CreditCard } from "lucide-react";
 
+// Razorpay's own Checkout popup already lets the user choose UPI, Card or
+// Net Banking inside it - so from FloraFind's side there's just one real
+// "online payment" method (razorpay) plus Cash on Delivery.
 const PAYMENT_METHODS = [
   ["cod", "Cash on Delivery"],
-  ["upi", "UPI"],
-  ["card", "Credit / Debit Card"],
-  ["netbanking", "Net Banking"],
+  ["razorpay", "Online Payment (Razorpay - Test Mode)"],
 ];
 
 const PaymentOptions = ({ paymentMethod, setPaymentMethod }) => (

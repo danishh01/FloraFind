@@ -40,9 +40,19 @@ const orderSchema = new mongoose.Schema(
     deliveryMethod: { type: String, enum: ["standard", "express"], default: "standard" },
     paymentMethod: {
       type: String,
-      enum: ["cod", "upi", "card", "netbanking"],
+      enum: ["cod", "razorpay"],
       default: "cod",
     },
+    // "pending" for COD (paid on delivery, not through the app), "paid" for
+    // a Razorpay order - an Order is only ever created for Razorpay AFTER
+    // the payment signature has been verified, so a saved Razorpay order is
+    // always "paid" (see paymentController.verifyPayment).
+    paymentStatus: { type: String, enum: ["pending", "paid"], default: "pending" },
+    // Only set for Razorpay orders - kept for support/debugging (e.g.
+    // looking a payment up in the Razorpay dashboard) and never used to
+    // decide whether a payment succeeded (the signature check already did that).
+    razorpayOrderId: String,
+    razorpayPaymentId: String,
 
     totalItems: { type: Number, required: true },
     subtotal: { type: Number, required: true },
