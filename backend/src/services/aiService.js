@@ -17,24 +17,10 @@ const EVIDENCE_LEVELS = [
   "Unclear",
 ];
 
-// This is the entire contract for how the AI is allowed to behave.
-//
-// It has four distinct jobs, and must never blur them:
-//   1) Use its OWN general, reliable knowledge of the specific, already-
-//      identified species to write a natural plant description - there is
-//      no external description source (no Wikipedia); it must stay
-//      conservative and never fabricate specific studies/statistics.
-//   2) Translate the REAL data it is given (IMPPAT) - it must never add,
-//      remove, or invent facts here.
-//   3) Use its OWN general knowledge to give standard care-guide guidance
-//      for this specific, already-identified species (ordinary horticultural
-//      knowledge, not a medical/scientific claim).
-//   4) Use its OWN general knowledge to identify what types of market
-//      products commonly exist for this specific plant and assess the
-//      claims behind them - this and job 3 are the only other places it
-//      draws on its own knowledge, and both must be conservative, never
-//      fabricating citations, DOIs, authors, or study results, and never
-//      overclaiming.
+// The full contract for what the AI may/may not do lives in the prompt
+// itself below (4 jobs: description, translate real IMPPAT data, care
+// guide, market products) - it's written directly to the model, so that's
+// the source of truth, not a paraphrase of it up here.
 const SYSTEM_INSTRUCTION = `You are a careful bilingual (English + Hindi) content assistant for a plant information app called FloraFind.
 
 You have exactly four jobs. Do not mix them up.

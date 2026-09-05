@@ -1,34 +1,19 @@
 import axios from "axios";
 
-// ---------------------------------------------------------------------------
-// IMPPAT (https://cb.imsc.res.in/imppat/) publishes a per-species
-// "therapeutics" page at:
-//   https://cb.imsc.res.in/imppat/therapeutics/<url-encoded scientific name>
-// e.g. https://cb.imsc.res.in/imppat/therapeutics/Tribulus%20terrestris
+// IMPPAT has no public API, just a per-species page:
+//   https://cb.imsc.res.in/imppat/therapeutics/<scientific name>
+// It's plain server-rendered HTML with the data in one
+// <table id="table_id">, columns: plant | plant part | therapeutic use |
+// use identifiers | references.
 //
-// This was verified manually against the live site before writing this
-// parser (see conversation notes): the page is plain server-rendered HTML
-// (PHP), not a JS-rendered SPA - the therapeutic-use table is present in
-// the initial HTTP response body, inside a single
-// <table id="table_id" class="phytochem1 table">...</table>, with columns:
-//   Indian medicinal plant | Plant part | Therapeutic use |
-//   Therapeutic use identifiers | References
+// Gotcha: the <a> tags inside table cells aren't closed before </td>. A real
+// HTML parser (tried cheerio) "fixes" that by re-nesting things, which
+// shifts columns on later rows - checked against the live page and it just
+// doesn't line up. The <td>/<tr> tags themselves are fine though, so plain
+// regexes over those pull every row out correctly where cheerio didn't.
 //
-// The page's <a> tags inside table cells are NOT properly closed before
-// </td> (e.g. <td><a href="...">Analgesics</td> - no </a>). This is real,
-// consistently malformed markup on the live site. An HTML5-tree-construction
-// parser (cheerio/parse5) was tested against it and produced misaligned
-// columns on later rows because of how it recovers from the dangling <a>.
-// The <td>...</td> and <tr>...</tr> boundaries themselves ARE always
-// well-formed on this page, so cell/row extraction is done here with
-// targeted regexes instead, which was verified byte-for-byte against the
-// live response to extract rows correctly (146/146 rows for Tribulus
-// terrestris, 376/376 for Azadirachta indica).
-//
-// A plant with no IMPPAT record still returns HTTP 200, just with an empty
-// <tbody> (only the header row). That - not the HTTP status - is how
-// "not found" is detected.
-// ---------------------------------------------------------------------------
+// A species with no record still comes back HTTP 200 with an empty table -
+// that's the real "not found" signal here, not the status code.
 
 const IMPPAT_BASE_URL = "https://cb.imsc.res.in/imppat/therapeutics";
 

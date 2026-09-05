@@ -5,6 +5,7 @@ import deduplicateBy from "../utils/deduplicate.js";
 import imppatService from "./imppatService.js";
 import aiService from "./aiService.js";
 import iNaturalistService from "./iNaturalistService.js";
+import imagekitService from "./imagekitService.js";
 
 const titleCase = (s) =>
   s
@@ -14,6 +15,30 @@ const titleCase = (s) =>
     .join(" ");
 
 const looksBinomial = (s) => /^[a-z]+\s[a-z-]+$/i.test((s || "").trim());
+
+// Fetches real photos from iNaturalist, then uploads each one to ImageKit so
+// later visitors get a smaller, faster-loading copy instead of always
+// depending on iNaturalist's own image server. The 3 uploads run at the same
+// time since they don't depend on each other. If ImageKit isn't configured
+// (or one particular upload fails), that image just falls back to its
+// original iNaturalist URL - a plant lookup never breaks because of this.
+const fetchAndUploadImages = async (scientificName) => {
+  const result = await iNaturalistService.getPlantImages(scientificName);
+  if (result.images.length === 0) return result;
+
+  const fileNamePrefix = normalizePlantName(scientificName).replace(/\s+/g, "-") || "plant";
+  const images = await Promise.all(
+    result.images.map(async (rawUrl, index) => {
+      const optimizedUrl = await imagekitService.uploadPlantImage(
+        rawUrl,
+        `${fileNamePrefix}-${index + 1}.jpg`
+      );
+      return optimizedUrl || rawUrl;
+    })
+  );
+
+  return { ...result, images };
+};
 
 const emptyCareGuide = () => ({
   sunlight_en: null,
@@ -54,9 +79,10 @@ export const getOrBuildPlant = async (query, hints = {}) => {
   }
 
   const dbReady = isDbConnected();
+  let cached = null;
 
   if (dbReady) {
-    const cached = await Plant.findOne({
+    cached = await Plant.findOne({
       normalizedNames: normalized,
     }).lean();
 
@@ -105,13 +131,31 @@ export const getOrBuildPlant = async (query, hints = {}) => {
   const scientificName =
     hints.scientificName || (looksBinomial(query) ? titleCase(query) : null);
 
+  // If this plant already has real images stored from an earlier attempt
+  // (e.g. only the AI step needed a retry), reuse them as-is instead of
+  // re-fetching from iNaturalist and re-uploading to ImageKit for no reason
+  // - the photos themselves didn't change just because another part of the
+  // record needs rebuilding.
+  const cachedImages = cached?.images?.length ? cached.images : null;
+  const cachedImageSource = cached?.sources?.find((s) => s.name === "iNaturalist") || null;
+
+  // IMPPAT and iNaturalist/ImageKit don't depend on each other's results, so
+  // they run at the same time instead of one after another. The AI call
+  // right after this only needs `traditional` (never the images), so it's
+  // still safe to keep it sequential and start it once both are done.
   // getTraditionalUses never throws - on any failure it resolves to
   // { available: false, reason } - so no try/catch is needed here.
-  const traditional = await imppatService.getTraditionalUses(scientificName);
+  const [traditional, imageResult] = await Promise.all([
+    imppatService.getTraditionalUses(scientificName),
+    cachedImages
+      ? Promise.resolve({ images: cachedImages, source: cachedImageSource })
+      : fetchAndUploadImages(scientificName),
+  ]);
   if (!traditional.available) {
     warnings.push("Traditional/medicinal use information is temporarily unavailable.");
   }
   const imppatFetchedAt = new Date();
+  const imagesFetchedAt = new Date();
 
   const queryMatchesScientific =
     scientificName && normalizePlantName(scientificName) === normalized;
@@ -121,9 +165,7 @@ export const getOrBuildPlant = async (query, hints = {}) => {
 
   const [genus, species] = scientificName ? scientificName.split(" ") : [null, null];
 
-  const imageResult = await iNaturalistService.getPlantImages(scientificName);
   const images = imageResult.images;
-  const imagesFetchedAt = new Date();
 
   let ai = null;
   const aiProcessedAt = new Date();

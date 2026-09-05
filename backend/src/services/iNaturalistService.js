@@ -1,22 +1,13 @@
 import axios from "axios";
 
-// ---------------------------------------------------------------------------
-// iNaturalist (https://www.inaturalist.org) is the image source for
-// FloraFind. Every image is a real, user-submitted observation photo for
-// the exact requested species - never a generic/unrelated search image, and
-// never a different species substituted just to reach a target count.
+// Image source: iNaturalist (real, user-submitted observation photos - never
+// a generic search image, never a swapped-in species just to hit a count).
 //
-// Progressive filtering, correctness over quantity:
-//   LEVEL 1 (strict) - exact species match + community "research grade"
-//     (the identification has been confirmed by the iNaturalist community).
-//   LEVEL 2 (loose)  - exact species match + "needs_id" grade (still a real
-//     observation of the right species, just not yet community-confirmed) -
-//     only used to fill in when strict alone isn't enough.
-// "casual" grade observations (often missing a confirmed ID or the minimum
-// required data) are never used at either level. If fewer than the desired
-// number of correctly-identified images exist, only those are returned -
-// this service never reaches for a wrong species just to pad the count.
-// ---------------------------------------------------------------------------
+// Two passes: first only "research grade" observations (community-confirmed
+// ID), then "needs_id" (still the right species, just unconfirmed) to top up
+// if research grade alone isn't enough. "casual" grade is skipped at both
+// passes - too often missing a real ID. Fewer than 3 correct photos is fine;
+// a wrong species never is.
 
 const INAT_OBSERVATIONS_URL = "https://api.inaturalist.org/v1/observations";
 const MAX_IMAGES = 3;
@@ -57,11 +48,10 @@ const collectImages = (observations, limit, seenImages) => {
 };
 
 /**
- * Fetches real iNaturalist observation photos for a scientific name, using
- * progressive strict -> loose filtering (see file header). Never invents a
- * URL, never substitutes a different species, and never throws - any
- * failure or lack of usable images resolves to an empty result so the
- * caller can fall back to a local placeholder.
+ * Fetches real iNaturalist photos for a scientific name (strict -> loose,
+ * see file header). Doesn't throw on failure, same reasoning as
+ * imppatService - an empty result here just means the caller falls back to
+ * a local placeholder image.
  *
  * Returns { images: string[], source: {name,url}|null, strictCount: number,
  * looseCount: number } - source is only set when at least one real image
