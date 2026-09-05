@@ -25,7 +25,7 @@ const backendDirectory = path.dirname(fileURLToPath(import.meta.url));
 // helmet's default same-origin Cross-Origin-Resource-Policy would otherwise
 // have the browser block those <img> loads.
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
-const configuredFrontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+const configuredFrontendUrl = process.env.FRONTEND_URL;
 const isProduction = process.env.NODE_ENV === "production";
 const allowedOrigins = new Set([
   configuredFrontendUrl,
