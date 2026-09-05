@@ -8,7 +8,7 @@ const CartItemRow = ({ item }) => {
   return (
     <div className="bg-white border-3 border-black rounded-3xl p-5 flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
       <div className="flex gap-5">
-        <img src={item.image} alt={item.name} className="w-28 h-28 rounded-2xl object-cover" />
+        <img src={item.image} alt={item.name} loading="lazy" className="w-28 h-28 rounded-2xl object-cover" />
 
         <div>
           <h2 className="text-2xl font-semibold text-black">{item.name}</h2>

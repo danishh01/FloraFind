@@ -1,5 +1,3 @@
-import React from "react";
-import { CheckCircle, Package, Truck, XCircle, Clock } from "lucide-react";
 
 // One order card: header, product list, status timeline, and address.
 const OrderCard = ({ order }) => {
@@ -34,7 +32,7 @@ const OrderCard = ({ order }) => {
       <div className="mt-6 space-y-4">
         {order.items.map((item) => (
           <div key={item.id} className="flex items-center gap-4 bg-gray-50 rounded-2xl p-4">
-            <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-xl" />
+            <img src={item.image} alt={item.name} loading="lazy" className="w-20 h-20 object-cover rounded-xl" />
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-black">{item.name}</h3>
               <p className="text-gray-500 text-sm">{item.scientificName}</p>

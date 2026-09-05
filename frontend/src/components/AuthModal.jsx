@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { X, Leaf } from "lucide-react";
+import { X } from "lucide-react";
 import {
   closeAuthModal,
   loginUser,
@@ -53,13 +53,13 @@ const AuthModal = () => {
           <X />
         </button>
 
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center font-montenegrin gap-3 mb-6">
           <h2 className="text-2xl sm:text-3xl font-black text-white">
             {mode === "login" ? "Login" : "Create Account"}
           </h2>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+        <form onSubmit={handleSubmit} className="flex font-montenegrin flex-col gap-2">
           {mode === "register" && (
             <input
               required
@@ -106,7 +106,7 @@ const AuthModal = () => {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-400">
+        <p className="mt-6 text-center font-montenegrin text-sm text-gray-400">
           {mode === "login"
             ? "Don't have an account?"
             : "Already have an account?"}{" "}

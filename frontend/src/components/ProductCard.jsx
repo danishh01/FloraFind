@@ -36,6 +36,7 @@ const ProductCard = ({ product }) => {
         <img
           src={product.image || "/indoor.png"}
           alt={product.name}
+          loading="lazy"
           className="w-full h-64 object-cover"
         />
 

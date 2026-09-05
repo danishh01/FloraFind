@@ -1,7 +1,33 @@
+import { useState } from 'react';
 import { Phone, MapPin, Send } from 'lucide-react';
 import BackgroundSection from '../components/BackgroundSection'
+import contactApi from '../api/contactApi';
+import { ApiError } from '../api/client';
 
 const ContactUs = () => {
+  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+  const [status, setStatus] = useState("idle"); // idle | sending | sent | error
+  const [error, setError] = useState(null);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus("sending");
+    setError(null);
+    try {
+      await contactApi.submitContactMessage(formData);
+      setStatus("sent");
+      setFormData({ name: "", email: "", message: "" });
+    } catch (err) {
+      setStatus("error");
+      setError(err instanceof ApiError ? err.message : "Could not send your message. Please try again.");
+    }
+  };
+
   return (
     <BackgroundSection className="flex items-center justify-center px-4 pt-24 sm:pt-8 pb-8 border-[5px] border-white rounded-3xl">
       <div className="w-full max-w-5xl overflow-hidden rounded-3xl shadow-2xl flex flex-col md:flex-row">
@@ -44,12 +70,49 @@ const ContactUs = () => {
 
         <div className="w-full md:w-1/2 bg-green-800 p-6 sm:p-10 text-white flex flex-col justify-center">
           <h2 className="hero-heading text-3xl sm:text-4xl mb-8">Send us a Message</h2>
-          <input type="text" placeholder="Your Name" className="mb-4 rounded-lg p-3 text-black bg-white/60" />
-          <input type="email" placeholder="Your Email" className="mb-4 rounded-lg p-3 text-black bg-white/60" />
-          <textarea rows="5" placeholder="Your Message" className="mb-6 rounded-lg p-3 text-black bg-white/60"></textarea>
-          <button className="rounded-lg bg-white py-3 font-semibold text-green-700 hover:bg-gray-100">
-            Send Message
-          </button>
+          {status === "sent" ? (
+            <p className="text-green-100 font-semibold">
+              Thanks! Your message has been sent - we'll get back to you soon.
+            </p>
+          ) : (
+            <form onSubmit={handleSubmit}>
+              <input
+                required
+                type="text"
+                name="name"
+                placeholder="Your Name"
+                value={formData.name}
+                onChange={handleChange}
+                className="mb-4 w-full rounded-lg p-3 text-black bg-white/60"
+              />
+              <input
+                required
+                type="email"
+                name="email"
+                placeholder="Your Email"
+                value={formData.email}
+                onChange={handleChange}
+                className="mb-4 w-full rounded-lg p-3 text-black bg-white/60"
+              />
+              <textarea
+                required
+                rows="5"
+                name="message"
+                placeholder="Your Message"
+                value={formData.message}
+                onChange={handleChange}
+                className="mb-6 w-full rounded-lg p-3 text-black bg-white/60"
+              ></textarea>
+              {error && <p className="mb-4 text-red-200 text-sm">{error}</p>}
+              <button
+                type="submit"
+                disabled={status === "sending"}
+                className="rounded-lg bg-white py-3 font-semibold text-green-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {status === "sending" ? "Sending..." : "Send Message"}
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </BackgroundSection>

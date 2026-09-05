@@ -14,7 +14,7 @@ const OrderSummary = ({
     <div className="gap-2 flex flex-col pb-2">
       {cartItems.map((item) => (
         <div key={item.id} className="flex items-center gap-4">
-          <img src={item.image} alt={item.name} className="w-16 h-16 rounded-xl object-cover" />
+          <img src={item.image} alt={item.name} loading="lazy" className="w-16 h-16 rounded-xl object-cover" />
           <div className="flex-1">
             <h3 className="text-black font-semibold">{item.name}</h3>
             <p className="text-gray-500 text-sm">

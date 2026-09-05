@@ -38,7 +38,7 @@ const AboutUs = () => {
         <div className="flex-[1] flex justify-center shrink-0">
         <div className="w-[140px] sm:w-[170px] md:w-[200px] rounded-full bg-green-700 p-2">
           <img
-            src="/plantAboutUs.png"
+            src="/plantAboutUs.webp"
             alt="Plant"
             className="w-full object-contain"
           />
